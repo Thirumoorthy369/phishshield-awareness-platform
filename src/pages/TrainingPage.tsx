@@ -7,29 +7,31 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import QuizCard from '@/components/training/QuizCard';
 
-// Mock quiz questions for QuizCard
+// Mock quiz questions for QuizCard with updated structure to match the Question type
 const mockQuestions = [
   {
     id: 1,
-    question: "Which of the following is a sign of a phishing email?",
+    text: "Which of the following is a sign of a phishing email?",
     options: [
       "Email from a known contact",
       "Urgent request for personal information",
       "Professional language and formatting",
       "Link to a company website"
     ],
-    correctAnswer: 1
+    correctIndex: 1,
+    explanation: "Phishing emails often contain urgent requests for personal information to create a sense of urgency that bypasses critical thinking."
   },
   {
     id: 2,
-    question: "What should you do if you suspect an email is phishing?",
+    text: "What should you do if you suspect an email is phishing?",
     options: [
       "Forward it to all colleagues as a warning",
       "Reply to ask if it's legitimate",
       "Report it to IT security",
       "Delete it immediately"
     ],
-    correctAnswer: 2
+    correctIndex: 2,
+    explanation: "You should always report suspicious emails to IT security so they can investigate and alert others if necessary."
   }
 ];
 

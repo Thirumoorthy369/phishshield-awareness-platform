@@ -8,16 +8,17 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import PhishingTemplateCard from '@/components/simulation/PhishingTemplateCard';
-import { useAuth, UserRole } from '@/context/auth';
+import { useAuth, UserRole } from '@/context/AuthContext';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Mock template data for PhishingTemplateCard
 const mockTemplate = {
-  id: 1,
+  id: "1",
   name: "Password Reset",
   description: "A fake password reset email template",
   category: "Authentication",
-  difficulty: "Medium"
+  difficulty: "medium" as "easy" | "medium" | "hard",
+  icon: "mail" as "mail" | "bell" | "creditcard" | "shopping"
 };
 
 // Mock data for campaigns
