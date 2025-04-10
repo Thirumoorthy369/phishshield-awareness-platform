@@ -1,8 +1,19 @@
 
+import { useState } from 'react';
 import { Info, Mail, SquareArrowDownRight } from 'lucide-react';
 import PhishingEmailSimulator from '@/components/practice/PhishingEmailSimulator';
+import { useToast } from '@/hooks/use-toast';
 
 const PracticePage = () => {
+  const { toast } = useToast();
+  
+  const handleScenarioClick = (level: string) => {
+    toast({
+      title: `${level} Scenario Selected`,
+      description: `Loading ${level.toLowerCase()} phishing scenarios...`,
+    });
+  };
+  
   return (
     <div className="space-y-6">
       <div>
@@ -25,7 +36,10 @@ const PracticePage = () => {
       <div className="mt-8">
         <h2 className="text-xl font-bold mb-4">More Practice Scenarios</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="border rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer">
+          <div 
+            className="border rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer"
+            onClick={() => handleScenarioClick('Beginner')}
+          >
             <div className="flex items-center space-x-3 mb-3">
               <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
                 <Mail className="h-5 w-5 text-green-600" />
@@ -43,7 +57,10 @@ const PracticePage = () => {
             </div>
           </div>
           
-          <div className="border rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer">
+          <div 
+            className="border rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer"
+            onClick={() => handleScenarioClick('Intermediate')}
+          >
             <div className="flex items-center space-x-3 mb-3">
               <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
                 <Mail className="h-5 w-5 text-amber-600" />
@@ -61,7 +78,10 @@ const PracticePage = () => {
             </div>
           </div>
           
-          <div className="border rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer">
+          <div 
+            className="border rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer"
+            onClick={() => handleScenarioClick('Advanced')}
+          >
             <div className="flex items-center space-x-3 mb-3">
               <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
                 <Mail className="h-5 w-5 text-red-600" />

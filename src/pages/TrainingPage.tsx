@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { BookOpen, CheckCircle2, ChevronRight, CirclePlay, GraduationCap, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 import QuizCard from '@/components/training/QuizCard';
 
 // Mock quiz questions for QuizCard with updated structure to match the Question type

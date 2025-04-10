@@ -8,7 +8,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useAuth, UserRole } from '@/context/AuthContext';
+import { useAuth, UserRole } from '@/context/auth';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -31,21 +31,21 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       id: 'training',
       label: 'Training Center', 
       icon: BookOpen, 
-      path: '/training',
+      path: '/dashboard/training',
       roles: [UserRole.USER, UserRole.ADMIN, UserRole.SUPER_ADMIN] 
     },
     { 
       id: 'practice',
       label: 'Practice Zone', 
       icon: LifeBuoy, 
-      path: '/practice', 
+      path: '/dashboard/practice', 
       roles: [UserRole.USER, UserRole.ADMIN, UserRole.SUPER_ADMIN] 
     },
     { 
       id: 'reporting',
       label: 'Report Phishing', 
       icon: Flag, 
-      path: '/reporting',
+      path: '/dashboard/reporting',
       roles: [UserRole.USER, UserRole.ADMIN, UserRole.SUPER_ADMIN] 
     },
     // Admin only features
@@ -53,21 +53,21 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       id: 'simulation',
       label: 'Simulation Hub', 
       icon: Mail, 
-      path: '/simulation',
+      path: '/dashboard/simulation',
       roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN] 
     },
     { 
       id: 'analytics',
       label: 'Analytics', 
       icon: BarChart3, 
-      path: '/analytics',
+      path: '/dashboard/analytics',
       roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN]  
     },
     { 
       id: 'campaigns',
       label: 'Campaigns', 
       icon: Inbox, 
-      path: '/campaigns',
+      path: '/dashboard/campaigns',
       roles: [UserRole.ADMIN, UserRole.SUPER_ADMIN] 
     },
     // Super admin only features
@@ -75,21 +75,21 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
       id: 'users',
       label: 'User Management', 
       icon: Users, 
-      path: '/users',
+      path: '/dashboard/users',
       roles: [UserRole.SUPER_ADMIN] 
     },
     { 
       id: 'templates',
       label: 'Email Templates', 
       icon: FileText, 
-      path: '/templates',
+      path: '/dashboard/templates',
       roles: [UserRole.SUPER_ADMIN] 
     },
     { 
       id: 'settings',
       label: 'Platform Settings', 
       icon: Settings, 
-      path: '/settings',
+      path: '/dashboard/settings',
       roles: [UserRole.SUPER_ADMIN] 
     },
   ];
@@ -122,7 +122,7 @@ const Sidebar = ({ isOpen }: SidebarProps) => {
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
                   isActive 
                     ? "bg-primary-50 text-primary-700 font-medium" 
-                    : "text-gray-500 hover:bg-gray-100"
+                    : "text-gray-500 hover:bg-gray-100 hover:text-white"
                 )
               }
               onClick={() => setActiveGroup(item.id)}

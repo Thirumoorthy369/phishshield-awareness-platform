@@ -19,11 +19,25 @@ const PhishingReportForm = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+      toast({
+        title: "File uploaded",
+        description: `Screenshot "${e.target.files[0].name}" added to report`,
+      });
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!senderEmail || !subject || !description) {
+      toast({
+        title: "Missing information",
+        description: "Please fill out all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     // Simulate API call
@@ -40,6 +54,17 @@ const PhishingReportForm = () => {
       setFile(null);
       setIsSubmitting(false);
     }, 1500);
+  };
+
+  const handleClear = () => {
+    setSenderEmail('');
+    setSubject('');
+    setDescription('');
+    setFile(null);
+    toast({
+      title: "Form cleared",
+      description: "All report information has been cleared",
+    });
   };
 
   return (
@@ -115,10 +140,21 @@ const PhishingReportForm = () => {
             </div>
           </div>
           
-          <Button className="w-full" type="submit" disabled={isSubmitting}>
-            <SendHorizontal className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Submitting...' : 'Submit Report'}
-          </Button>
+          <div className="flex space-x-4">
+            <Button className="w-full" type="submit" disabled={isSubmitting}>
+              <SendHorizontal className="mr-2 h-4 w-4" />
+              {isSubmitting ? 'Submitting...' : 'Submit Report'}
+            </Button>
+            <Button 
+              variant="outline" 
+              type="button" 
+              className="w-1/3" 
+              onClick={handleClear}
+              disabled={isSubmitting}
+            >
+              Clear
+            </Button>
+          </div>
         </form>
       </CardContent>
       <CardFooter className="text-sm text-gray-500 justify-center">

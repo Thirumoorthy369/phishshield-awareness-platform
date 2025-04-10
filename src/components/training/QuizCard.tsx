@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 
 interface Question {
   id: number;
@@ -26,6 +27,7 @@ const QuizCard = ({ questions, onComplete }: QuizCardProps) => {
   const [isAnswered, setIsAnswered] = useState(false);
   const [correctAnswers, setCorrectAnswers] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const { toast } = useToast();
   
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
@@ -40,6 +42,17 @@ const QuizCard = ({ questions, onComplete }: QuizCardProps) => {
     setIsAnswered(true);
     if (selectedOption === currentQuestion.correctIndex) {
       setCorrectAnswers(prev => prev + 1);
+      toast({
+        title: "Correct!",
+        description: "You selected the right answer.",
+        variant: "default",
+      });
+    } else {
+      toast({
+        title: "Incorrect",
+        description: "That's not the right answer.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -52,7 +65,39 @@ const QuizCard = ({ questions, onComplete }: QuizCardProps) => {
       setQuizCompleted(true);
       const finalScore = Math.round((correctAnswers / questions.length) * 100);
       onComplete(finalScore);
+      toast({
+        title: "Quiz Completed!",
+        description: `Your score: ${finalScore}%`,
+        variant: "default",
+      });
     }
+  };
+
+  const handleReview = () => {
+    setQuizCompleted(false);
+    setCurrentQuestionIndex(0);
+    setSelectedOption(null);
+    setIsAnswered(false);
+    toast({
+      title: "Reviewing Quiz",
+      description: "Take your time to review the answers",
+      variant: "default",
+    });
+  };
+
+  const handleBackToTraining = () => {
+    // This would typically navigate back to the training page
+    // For now we'll just reset the quiz
+    setQuizCompleted(false);
+    setCurrentQuestionIndex(0);
+    setSelectedOption(null);
+    setIsAnswered(false);
+    setCorrectAnswers(0);
+    toast({
+      title: "Back to Training",
+      description: "Returning to training modules",
+      variant: "default",
+    });
   };
 
   return (
@@ -177,8 +222,8 @@ const QuizCard = ({ questions, onComplete }: QuizCardProps) => {
           </div>
           
           <div className="mt-6">
-            <Button className="mx-2">Review Answers</Button>
-            <Button variant="outline" className="mx-2">Back to Training</Button>
+            <Button className="mx-2" onClick={handleReview}>Review Answers</Button>
+            <Button variant="outline" className="mx-2" onClick={handleBackToTraining}>Back to Training</Button>
           </div>
         </CardContent>
       )}
