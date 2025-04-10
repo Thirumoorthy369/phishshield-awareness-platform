@@ -1,460 +1,451 @@
 
 import { useState } from 'react';
-import { BarChart, Calendar, Clock, Mail, PlusCircle, Settings, User, Users } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, BarChart3, Calendar, Check, ChevronRight, Mail, Pencil, PlusCircle, Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import PhishingTemplateCard from '@/components/simulation/PhishingTemplateCard';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import PhishingTemplateCard from '@/components/simulation/PhishingTemplateCard';
+import { useAuth, UserRole } from '@/context/AuthContext';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-// Mock template data
-const phishingTemplates = [
+// Mock data for campaigns
+const campaigns = [
   {
-    id: 'template-1',
-    name: 'Password Reset Request',
-    category: 'IT Support',
-    description: 'Email claiming to be from IT support requesting an urgent password change due to security issues.',
-    difficulty: 'easy' as const,
-    icon: 'mail' as const
+    id: 1,
+    name: 'Spring Security Awareness',
+    status: 'active',
+    startDate: '2023-03-01',
+    endDate: '2023-03-15',
+    targets: 142,
+    template: 'Password Reset',
+    opens: 87,
+    clicks: 34,
+    reports: 22
   },
   {
-    id: 'template-2',
-    name: 'Account Verification',
-    category: 'Account Security',
-    description: 'Email asking users to verify their account information to avoid service interruption.',
-    difficulty: 'medium' as const,
-    icon: 'bell' as const
+    id: 2,
+    name: 'New Policy Announcement',
+    status: 'scheduled',
+    startDate: '2023-04-01',
+    endDate: '2023-04-10',
+    targets: 156,
+    template: 'Policy Update',
+    opens: 0,
+    clicks: 0,
+    reports: 0
   },
   {
-    id: 'template-3',
-    name: 'Invoice Payment',
-    category: 'Financial',
-    description: 'Email with a fake invoice that requires immediate payment with a suspicious payment link.',
-    difficulty: 'hard' as const,
-    icon: 'creditcard' as const
-  },
-  {
-    id: 'template-4',
-    name: 'Package Delivery',
-    category: 'Delivery',
-    description: 'Email about a package delivery issue requiring action to proceed with delivery.',
-    difficulty: 'medium' as const,
-    icon: 'shopping' as const
-  },
-  {
-    id: 'template-5',
-    name: 'Document Sharing',
-    category: 'Productivity',
-    description: 'Email with a shared document that requires user login to access important files.',
-    difficulty: 'medium' as const,
-    icon: 'mail' as const
-  },
-  {
-    id: 'template-6',
-    name: 'CEO Fraud',
-    category: 'Executive Impersonation',
-    description: 'Email impersonating a company executive requesting urgent wire transfer or sensitive information.',
-    difficulty: 'hard' as const,
-    icon: 'mail' as const
-  }
-];
-
-// Mock campaign data
-const activeCampaigns = [
-  {
-    id: 'campaign-1',
-    name: 'Q1 Security Awareness',
-    templateName: 'Password Reset Request',
-    startDate: '2023-01-15',
-    status: 'Active',
-    recipients: 48,
-    opened: 35,
-    clicked: 18,
-    reported: 7
-  },
-  {
-    id: 'campaign-2',
-    name: 'New Hires Training',
-    templateName: 'Account Verification',
+    id: 3,
+    name: 'IT Department Update',
+    status: 'completed',
     startDate: '2023-02-10',
-    status: 'Active',
-    recipients: 12,
-    opened: 10,
-    clicked: 3,
-    reported: 4
+    endDate: '2023-02-20',
+    targets: 138,
+    template: 'Software Update',
+    opens: 122,
+    clicks: 56,
+    reports: 41
   }
 ];
 
-const completedCampaigns = [
-  {
-    id: 'campaign-3',
-    name: 'Security Week Exercise',
-    templateName: 'CEO Fraud',
-    startDate: '2022-11-05',
-    endDate: '2022-11-12',
-    status: 'Completed',
-    recipients: 86,
-    opened: 72,
-    clicked: 41,
-    reported: 15
-  },
-  {
-    id: 'campaign-4',
-    name: 'Finance Department Training',
-    templateName: 'Invoice Payment',
-    startDate: '2022-12-01',
-    endDate: '2022-12-15',
-    status: 'Completed',
-    recipients: 24,
-    opened: 20,
-    clicked: 8,
-    reported: 10
+const getStatusBadge = (status: string) => {
+  switch (status) {
+    case 'active':
+      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>;
+    case 'scheduled':
+      return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Scheduled</Badge>;
+    case 'completed':
+      return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">Completed</Badge>;
+    default:
+      return <Badge>{status}</Badge>;
   }
-];
+};
 
 const SimulationPage = () => {
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('templates');
+  const [currentTab, setCurrentTab] = useState('campaigns');
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // Check if user has admin privileges
+  const isAuthorized = user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN;
+  
+  if (!isAuthorized) {
+    return (
+      <div className="space-y-6">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            You don't have permission to access the simulation hub. Please contact your administrator.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
 
-  const handleTemplateSelect = (templateId: string) => {
-    setSelectedTemplate(templateId);
+  const handleDeleteCampaign = (id: number) => {
     toast({
-      title: "Template Selected",
-      description: "Configure your campaign details to continue",
+      title: "Campaign deleted",
+      description: `Campaign #${id} has been deleted.`,
+      variant: "destructive"
     });
-    setActiveTab('new');
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Phishing Simulation</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Simulation Hub</h1>
           <p className="text-muted-foreground">
-            Create and manage phishing simulations to test your organization's security awareness
+            Create and manage phishing simulation campaigns
           </p>
         </div>
-        <Button onClick={() => setActiveTab('new')}>
+        <Button>
           <PlusCircle className="mr-2 h-4 w-4" />
           New Campaign
         </Button>
       </div>
 
-      <Tabs defaultValue="templates" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full mb-4">
-          <TabsTrigger value="templates" className="flex-1">Email Templates</TabsTrigger>
-          <TabsTrigger value="new" className="flex-1">New Campaign</TabsTrigger>
-          <TabsTrigger value="active" className="flex-1">Active Campaigns</TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1">Completed Campaigns</TabsTrigger>
+      {/* Campaign Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-blue-100 rounded-full mr-4">
+                <Mail className="h-6 w-6 text-blue-700" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Campaigns</p>
+                <p className="text-2xl font-bold">12</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-green-100 rounded-full mr-4">
+                <Users className="h-6 w-6 text-green-700" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Targets</p>
+                <p className="text-2xl font-bold">468</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-amber-100 rounded-full mr-4">
+                <BarChart3 className="h-6 w-6 text-amber-700" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Click Rate</p>
+                <p className="text-2xl font-bold">24.8%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <div className="p-2 bg-purple-100 rounded-full mr-4">
+                <AlertCircle className="h-6 w-6 text-purple-700" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Report Rate</p>
+                <p className="text-2xl font-bold">31.2%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Simulation Tabs */}
+      <Tabs value={currentTab} onValueChange={setCurrentTab} className="space-y-6">
+        <TabsList className="grid w-full md:w-auto grid-cols-3">
+          <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
         </TabsList>
-
-        {/* Templates Tab */}
-        <TabsContent value="templates" className="m-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {phishingTemplates.map(template => (
-              <PhishingTemplateCard
-                key={template.id}
-                template={template}
-                onSelect={handleTemplateSelect}
-              />
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* New Campaign Tab */}
-        <TabsContent value="new" className="m-0">
+        
+        {/* Campaigns Tab */}
+        <TabsContent value="campaigns" className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Create New Phishing Campaign</CardTitle>
+            <CardHeader className="pb-0">
+              <CardTitle>Active & Scheduled Campaigns</CardTitle>
               <CardDescription>
-                Configure your phishing simulation campaign settings
+                Manage your ongoing and upcoming phishing simulations
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Basic Information */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Campaign Details</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="campaign-name">Campaign Name</Label>
-                    <Input id="campaign-name" placeholder="Q1 Security Awareness Campaign" />
-                  </div>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Campaign Name</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Template</TableHead>
+                    <TableHead className="hidden md:table-cell">Dates</TableHead>
+                    <TableHead className="hidden md:table-cell">Targets</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {campaigns.map(campaign => (
+                    <TableRow key={campaign.id}>
+                      <TableCell className="font-medium">{campaign.name}</TableCell>
+                      <TableCell>{getStatusBadge(campaign.status)}</TableCell>
+                      <TableCell>{campaign.template}</TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="flex items-center">
+                          <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                          <span className="text-sm">
+                            {new Date(campaign.startDate).toLocaleDateString()} - {new Date(campaign.endDate).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">{campaign.targets}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end items-center gap-2">
+                          <Button size="icon" variant="ghost">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="ghost"
+                            onClick={() => handleDeleteCampaign(campaign.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <CardFooter className="border-t p-4 flex justify-center">
+              <Button variant="outline">
+                View All Campaigns
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+          
+          {/* Campaign Results */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Latest Campaign Results</CardTitle>
+              <CardDescription>
+                Performance metrics from your most recent campaigns
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {campaigns
+                .filter(c => c.status === 'completed')
+                .map(campaign => {
+                  const clickRate = (campaign.clicks / campaign.opens) * 100;
+                  const reportRate = (campaign.reports / campaign.clicks) * 100;
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="campaign-date">Start Date</Label>
-                    <Input id="campaign-date" type="date" />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="campaign-description">Description (Optional)</Label>
-                  <textarea 
-                    id="campaign-description" 
-                    className="min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder="Campaign objectives and notes..."
-                  />
-                </div>
-              </div>
-              
-              {/* Email Template */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Email Template</h3>
-                
-                <div className="p-4 border rounded-md bg-gray-50">
-                  {selectedTemplate ? (
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">
-                          {phishingTemplates.find(t => t.id === selectedTemplate)?.name || 'Unknown Template'}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {phishingTemplates.find(t => t.id === selectedTemplate)?.category || 'Unknown Category'}
-                        </p>
+                  return (
+                    <div key={campaign.id} className="mb-6 last:mb-0">
+                      <div className="flex justify-between mb-2">
+                        <h4 className="font-medium">{campaign.name}</h4>
+                        <span className="text-sm text-muted-foreground">
+                          {new Date(campaign.endDate).toLocaleDateString()}
+                        </span>
                       </div>
-                      <Button variant="outline" size="sm" onClick={() => setActiveTab('templates')}>
-                        Change Template
-                      </Button>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Open Rate ({campaign.opens}/{campaign.targets})</span>
+                            <span>{Math.round((campaign.opens / campaign.targets) * 100)}%</span>
+                          </div>
+                          <Progress value={(campaign.opens / campaign.targets) * 100} className="h-2" />
+                        </div>
+                        
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Click Rate ({campaign.clicks}/{campaign.opens})</span>
+                            <span>{clickRate.toFixed(1)}%</span>
+                          </div>
+                          <Progress value={clickRate} className="h-2" />
+                        </div>
+                        
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Report Rate ({campaign.reports}/{campaign.clicks})</span>
+                            <span>{reportRate.toFixed(1)}%</span>
+                          </div>
+                          <Progress value={reportRate} className="h-2 bg-muted" />
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <Mail className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500">No template selected</p>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-2"
-                        onClick={() => setActiveTab('templates')}
-                      >
-                        Select Template
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Target Recipients */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-medium">Target Recipients</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 border rounded-md hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center">
-                      <input type="radio" name="recipient-type" id="all-users" className="mr-2" />
-                      <label htmlFor="all-users" className="font-medium cursor-pointer">All Users</label>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1 ml-5">
-                      Send to all users in your organization (124)
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 border rounded-md hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center">
-                      <input type="radio" name="recipient-type" id="specific-depts" className="mr-2" />
-                      <label htmlFor="specific-depts" className="font-medium cursor-pointer">Specific Departments</label>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1 ml-5">
-                      Select departments to target
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 border rounded-md hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center">
-                      <input type="radio" name="recipient-type" id="custom-list" className="mr-2" />
-                      <label htmlFor="custom-list" className="font-medium cursor-pointer">Custom User List</label>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1 ml-5">
-                      Select specific users to target
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 border rounded-md hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center">
-                      <input type="radio" name="recipient-type" id="upload-csv" className="mr-2" />
-                      <label htmlFor="upload-csv" className="font-medium cursor-pointer">Upload CSV</label>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1 ml-5">
-                      Upload a CSV file with email addresses
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Advanced Settings (collapsed by default) */}
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <Settings className="h-4 w-4 mr-2" />
-                  <h3 className="text-lg font-medium">Advanced Settings</h3>
-                </div>
-                
-                <div className="text-sm text-gray-500">
-                  <a href="#" className="text-primary underline">
-                    Click to configure advanced settings
-                  </a>
-                  <span className="ml-1">
-                    (Landing page URL, success page, tracking options)
-                  </span>
+                  );
+                })}
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" className="w-full">
+                <BarChart3 className="mr-2 h-4 w-4" />
+                View Detailed Analytics
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        {/* Templates Tab */}
+        <TabsContent value="templates" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <PhishingTemplateCard />
+            
+            {/* Add New Template Card */}
+            <Card className="border-dashed">
+              <CardHeader>
+                <CardTitle>Create New Template</CardTitle>
+                <CardDescription>
+                  Design a custom phishing email template
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex items-center justify-center h-40">
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create Template
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Campaign Performance Overview</CardTitle>
+              <CardDescription>
+                Comparative metrics across all phishing campaigns
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-80 flex items-center justify-center border rounded-md bg-gray-50">
+                <div className="text-center p-6">
+                  <BarChart3 className="h-16 w-16 mx-auto text-muted-foreground" />
+                  <h3 className="mt-4 text-lg font-medium">Analytics Dashboard</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Detailed analytics visualizations would be displayed here
+                  </p>
                 </div>
               </div>
             </CardContent>
-            
-            <div className="p-6 border-t flex justify-end space-x-2">
-              <Button variant="outline">
-                Save as Draft
-              </Button>
-              <Button
-                disabled={!selectedTemplate}
-                onClick={() => {
-                  toast({
-                    title: "Campaign Created",
-                    description: "Your phishing simulation campaign has been created and scheduled.",
-                    variant: "success"
-                  });
-                  setActiveTab('active');
-                }}
-              >
-                Launch Campaign
-              </Button>
-            </div>
           </Card>
-        </TabsContent>
-
-        {/* Active Campaigns Tab */}
-        <TabsContent value="active" className="m-0">
-          <div className="space-y-4">
-            {activeCampaigns.map(campaign => (
-              <CampaignCard key={campaign.id} campaign={campaign} />
-            ))}
-          </div>
-        </TabsContent>
-
-        {/* Completed Campaigns Tab */}
-        <TabsContent value="completed" className="m-0">
-          <div className="space-y-4">
-            {completedCampaigns.map(campaign => (
-              <CampaignCard key={campaign.id} campaign={campaign} />
-            ))}
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Vulnerable Departments</CardTitle>
+                <CardDescription>
+                  Departments with highest click rates
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Finance</span>
+                      <span className="font-medium">32.5%</span>
+                    </div>
+                    <Progress value={32.5} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Customer Service</span>
+                      <span className="font-medium">28.7%</span>
+                    </div>
+                    <Progress value={28.7} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Sales</span>
+                      <span className="font-medium">24.2%</span>
+                    </div>
+                    <Progress value={24.2} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Human Resources</span>
+                      <span className="font-medium">18.9%</span>
+                    </div>
+                    <Progress value={18.9} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>IT Department</span>
+                      <span className="font-medium">12.3%</span>
+                    </div>
+                    <Progress value={12.3} className="h-2" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Most Effective Templates</CardTitle>
+                <CardDescription>
+                  Templates with highest click-through rates
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Password Reset</span>
+                      <span className="font-medium">41.2%</span>
+                    </div>
+                    <Progress value={41.2} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Package Delivery</span>
+                      <span className="font-medium">38.7%</span>
+                    </div>
+                    <Progress value={38.7} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Account Verification</span>
+                      <span className="font-medium">35.5%</span>
+                    </div>
+                    <Progress value={35.5} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>Invoice Payment</span>
+                      <span className="font-medium">30.8%</span>
+                    </div>
+                    <Progress value={30.8} className="h-2" />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>IT Security Alert</span>
+                      <span className="font-medium">22.4%</span>
+                    </div>
+                    <Progress value={22.4} className="h-2" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>
-    </div>
-  );
-};
-
-interface CampaignCardProps {
-  campaign: any; // Using 'any' for brevity, should use proper type in real app
-}
-
-const CampaignCard = ({ campaign }: CampaignCardProps) => {
-  // Calculate metrics
-  const openRate = Math.round((campaign.opened / campaign.recipients) * 100);
-  const clickRate = Math.round((campaign.clicked / campaign.recipients) * 100);
-  const reportRate = Math.round((campaign.reported / campaign.recipients) * 100);
-
-  return (
-    <Card>
-      <CardHeader className="pb-2">
-        <div className="flex justify-between">
-          <div>
-            <CardTitle>{campaign.name}</CardTitle>
-            <CardDescription>{campaign.templateName}</CardDescription>
-          </div>
-          <div className={`px-2 py-1 text-xs font-medium rounded-full ${
-            campaign.status === 'Active' 
-              ? 'bg-green-100 text-green-800'
-              : 'bg-blue-100 text-blue-800'
-          }`}>
-            {campaign.status}
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent>
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div className="flex items-center space-x-2">
-            <Calendar className="h-4 w-4 text-gray-500" />
-            <span className="text-sm">
-              Started: {new Date(campaign.startDate).toLocaleDateString()}
-            </span>
-          </div>
-          
-          {campaign.endDate && (
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">
-                Ended: {new Date(campaign.endDate).toLocaleDateString()}
-              </span>
-            </div>
-          )}
-          
-          <div className="flex items-center space-x-2">
-            <Users className="h-4 w-4 text-gray-500" />
-            <span className="text-sm">
-              Recipients: {campaign.recipients}
-            </span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <MetricCard 
-            label="Open Rate" 
-            value={`${openRate}%`}
-            icon={Mail}
-            tooltip={`${campaign.opened} of ${campaign.recipients} opened`}
-            color="blue"
-          />
-          
-          <MetricCard 
-            label="Click Rate" 
-            value={`${clickRate}%`}
-            icon={User}
-            tooltip={`${campaign.clicked} of ${campaign.recipients} clicked`}
-            color="amber"
-          />
-          
-          <MetricCard 
-            label="Report Rate" 
-            value={`${reportRate}%`}
-            icon={BarChart}
-            tooltip={`${campaign.reported} of ${campaign.recipients} reported`}
-            color="green"
-          />
-        </div>
-        
-        <div className="flex justify-end mt-4">
-          <Button variant="outline" size="sm">View Details</Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-interface MetricCardProps {
-  label: string;
-  value: string;
-  icon: any; // Component type
-  tooltip: string;
-  color: 'blue' | 'green' | 'amber' | 'red';
-}
-
-const MetricCard = ({ label, value, icon: Icon, tooltip, color }: MetricCardProps) => {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-700 border-blue-200',
-    green: 'bg-green-50 text-green-700 border-green-200',
-    amber: 'bg-amber-50 text-amber-700 border-amber-200',
-    red: 'bg-red-50 text-red-700 border-red-200',
-  };
-
-  return (
-    <div className={`p-4 rounded-md border ${colorClasses[color]}`} title={tooltip}>
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-medium">{label}</span>
-        <Icon className="h-4 w-4" />
-      </div>
-      <div className="text-2xl font-bold">{value}</div>
     </div>
   );
 };
