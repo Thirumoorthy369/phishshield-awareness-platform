@@ -42,7 +42,7 @@ const RegisterForm = () => {
     
     try {
       await register(name, email, password);
-      navigate('/login');
+      navigate('/login', { state: { registered: true }});
     } catch (error) {
       console.error('Registration failed:', error);
       // Toast is displayed by auth context
@@ -141,7 +141,7 @@ const RegisterForm = () => {
           </div>
           <Button 
             type="submit" 
-            className="w-full" 
+            className="w-full button-hover" 
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Creating account...' : 'Create Account'}

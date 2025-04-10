@@ -12,10 +12,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
+  
+  // Database simulation for storing new user accounts
+  const [userDatabase, setUserDatabase] = useState<any[]>([...MOCK_USERS]);
 
   // Check if user is authenticated on mount
   useEffect(() => {
     checkAuth();
+    
+    // Load stored users from localStorage
+    const storedUsers = localStorage.getItem('userDatabase');
+    if (storedUsers) {
+      setUserDatabase([...JSON.parse(storedUsers), ...MOCK_USERS]);
+    }
   }, []);
 
   // Check if user is authenticated
@@ -38,15 +47,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Mock login functionality
+  // Login functionality
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Find user (in a real app, this would be a server request)
-      const foundUser = MOCK_USERS.find(u => u.email === email && u.password === password);
+      // Find user in our database
+      const foundUser = userDatabase.find(u => u.email === email && u.password === password);
       
       if (foundUser) {
         const token = createMockJwt(foundUser);
@@ -77,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Mock register functionality
+  // Registration functionality - now with storage
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
@@ -85,12 +94,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check if user already exists
-      if (MOCK_USERS.some(u => u.email === email)) {
+      if (userDatabase.some(u => u.email === email)) {
         throw new Error('User already exists');
       }
       
-      // In a real app, this would create a user in the database
-      // For demo purposes, we'll just simulate a successful registration
+      // Create a new user
+      const newUser = {
+        id: `user-${Date.now()}`,
+        name,
+        email,
+        password,
+        role: UserRole.USER
+      };
+      
+      // Store in our database
+      const updatedDatabase = [...userDatabase, newUser];
+      setUserDatabase(updatedDatabase);
+      
+      // Save to localStorage
+      localStorage.setItem('userDatabase', JSON.stringify(updatedDatabase));
+      
       toast({
         title: "Registration successful",
         description: "Your account has been created. You can now log in.",

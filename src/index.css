@@ -100,3 +100,24 @@
 .hover-card-effect {
   @apply transition-transform duration-300 hover:-translate-y-1;
 }
+
+/* Button hover effects */
+.button-hover {
+  @apply transition-all duration-200;
+}
+
+/* Custom animations for buttons */
+@keyframes button-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.animate-button-pulse {
+  animation: button-pulse 1.5s ease-in-out infinite;
+}

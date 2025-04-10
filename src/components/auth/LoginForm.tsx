@@ -1,11 +1,12 @@
 
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +15,18 @@ const LoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
+
+  // Check if user was just registered
+  useEffect(() => {
+    if (location.state?.registered) {
+      toast({
+        title: "Registration successful",
+        description: "You've been registered successfully. Please log in.",
+      });
+    }
+  }, [location.state, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,7 +96,7 @@ const LoginForm = () => {
           </div>
           <Button 
             type="submit" 
-            className="w-full" 
+            className="w-full button-hover" 
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Logging in...' : 'Log in'}
