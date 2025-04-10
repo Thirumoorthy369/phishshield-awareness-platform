@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth, UserRole } from '@/context/AuthContext';
+import { useAuth, UserRole } from '@/context/auth';
 
 interface HeaderProps {
   toggleSidebar: () => void;

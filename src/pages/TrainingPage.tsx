@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { BookOpen, CheckCircle2, ChevronRight, CirclePlay, GraduationCap, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,32 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import QuizCard from '@/components/training/QuizCard';
+
+// Mock quiz questions for QuizCard
+const mockQuestions = [
+  {
+    id: 1,
+    question: "Which of the following is a sign of a phishing email?",
+    options: [
+      "Email from a known contact",
+      "Urgent request for personal information",
+      "Professional language and formatting",
+      "Link to a company website"
+    ],
+    correctAnswer: 1
+  },
+  {
+    id: 2,
+    question: "What should you do if you suspect an email is phishing?",
+    options: [
+      "Forward it to all colleagues as a warning",
+      "Reply to ask if it's legitimate",
+      "Report it to IT security",
+      "Delete it immediately"
+    ],
+    correctAnswer: 2
+  }
+];
 
 // Mock data for training modules
 const trainingModules = [
@@ -79,6 +104,7 @@ const certifications = [
 
 const TrainingPage = () => {
   const [currentTab, setCurrentTab] = useState('courses');
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
   // Calculate overall progress
   const overallProgress = trainingModules.reduce((acc, module) => acc + module.progress, 0) / trainingModules.length;
@@ -86,6 +112,11 @@ const TrainingPage = () => {
   // Count completed modules
   const completedModules = trainingModules.filter(module => module.completed).length;
   
+  const handleQuizComplete = (score: number) => {
+    setQuizCompleted(true);
+    console.log(`Quiz completed with score: ${score}`);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -242,12 +273,15 @@ const TrainingPage = () => {
                 <CardDescription>Test your ability to spot phishing attempts</CardDescription>
               </CardHeader>
               <CardContent>
-                <QuizCard />
+                <QuizCard 
+                  questions={mockQuestions}
+                  onComplete={handleQuizComplete}
+                />
               </CardContent>
               <CardFooter>
                 <Button className="w-full">
                   <BookOpen className="mr-2 h-4 w-4" />
-                  Start Quiz
+                  {quizCompleted ? "Review Quiz" : "Start Quiz"}
                 </Button>
               </CardFooter>
             </Card>

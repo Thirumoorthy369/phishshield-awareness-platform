@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AlertCircle, BarChart3, Calendar, Check, ChevronRight, Mail, Pencil, PlusCircle, Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,8 +8,17 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import PhishingTemplateCard from '@/components/simulation/PhishingTemplateCard';
-import { useAuth, UserRole } from '@/context/AuthContext';
+import { useAuth, UserRole } from '@/context/auth';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+// Mock template data for PhishingTemplateCard
+const mockTemplate = {
+  id: 1,
+  name: "Password Reset",
+  description: "A fake password reset email template",
+  category: "Authentication",
+  difficulty: "Medium"
+};
 
 // Mock data for campaigns
 const campaigns = [
@@ -69,6 +77,7 @@ const SimulationPage = () => {
   const [currentTab, setCurrentTab] = useState('campaigns');
   const { toast } = useToast();
   const { user } = useAuth();
+  const [selectedTemplate, setSelectedTemplate] = useState(mockTemplate);
   
   // Check if user has admin privileges
   const isAuthorized = user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN;
@@ -92,6 +101,14 @@ const SimulationPage = () => {
       title: "Campaign deleted",
       description: `Campaign #${id} has been deleted.`,
       variant: "destructive"
+    });
+  };
+
+  const handleSelectTemplate = (template: any) => {
+    setSelectedTemplate(template);
+    toast({
+      title: "Template selected",
+      description: `${template.name} template has been selected.`
     });
   };
 
@@ -305,7 +322,10 @@ const SimulationPage = () => {
         {/* Templates Tab */}
         <TabsContent value="templates" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <PhishingTemplateCard />
+            <PhishingTemplateCard 
+              template={selectedTemplate} 
+              onSelect={handleSelectTemplate} 
+            />
             
             {/* Add New Template Card */}
             <Card className="border-dashed">

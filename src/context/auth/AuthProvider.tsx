@@ -1,60 +1,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-
-// Define user roles
-export enum UserRole {
-  USER = 'user',
-  ADMIN = 'admin',
-  SUPER_ADMIN = 'super_admin'
-}
-
-// User interface
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-}
-
-// Auth context interface
-interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  checkAuth: () => Promise<void>;
-}
+import { User, UserRole, AuthContextType } from '../types/auth-types';
+import { MOCK_USERS } from './mock-users';
+import { storeToken, getToken, removeToken, createMockJwt } from './token-utils';
 
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock users for demo
-const MOCK_USERS = [
-  {
-    id: '1',
-    name: 'John Doe',
-    email: 'user@example.com',
-    password: 'password123',
-    role: UserRole.USER
-  },
-  {
-    id: '2',
-    name: 'Admin User',
-    email: 'admin@example.com',
-    password: 'admin123',
-    role: UserRole.ADMIN
-  },
-  {
-    id: '3',
-    name: 'Super Admin',
-    email: 'superadmin@example.com',
-    password: 'super123',
-    role: UserRole.SUPER_ADMIN
-  }
-];
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -65,26 +17,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     checkAuth();
   }, []);
-
-  // Mock JWT token storage functions
-  const storeToken = (token: string) => {
-    localStorage.setItem('token', token);
-  };
-
-  const getToken = () => {
-    return localStorage.getItem('token');
-  };
-
-  const removeToken = () => {
-    localStorage.removeItem('token');
-  };
-
-  // Mock JWT creation (in a real app, this would be done server-side)
-  const createMockJwt = (user: typeof MOCK_USERS[0]) => {
-    // Remove password from token payload
-    const { password, ...userWithoutPassword } = user;
-    return JSON.stringify(userWithoutPassword);
-  };
 
   // Check if user is authenticated
   const checkAuth = async () => {
