@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 
-interface Question {
+// Export the Question interface so it can be imported by other components
+export interface Question {
   id: number;
   text: string;
   options: string[];

@@ -1,9 +1,7 @@
-
 import { BookOpen } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import QuizCard from '@/components/training/QuizCard';
-import { Question } from './QuizCard';
+import QuizCard, { Question } from '@/components/training/QuizCard';
 
 interface AssessmentCardProps {
   title: string;
