@@ -13,18 +13,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
   
-  // Database simulation for storing new user accounts
-  const [userDatabase, setUserDatabase] = useState<any[]>([...MOCK_USERS]);
+  // Initialize userDatabase with mock users and any stored users
+  const [userDatabase, setUserDatabase] = useState<any[]>(() => {
+    // Try to get stored users from localStorage
+    const storedUsers = localStorage.getItem('userDatabase');
+    if (storedUsers) {
+      try {
+        // Create a unique set of users by email to avoid duplicates
+        const parsedUsers = JSON.parse(storedUsers);
+        const allUsers = [...parsedUsers, ...MOCK_USERS];
+        
+        // Create a map to deduplicate by email
+        const uniqueUsers = new Map();
+        allUsers.forEach(user => uniqueUsers.set(user.email, user));
+        
+        return Array.from(uniqueUsers.values());
+      } catch (error) {
+        console.error('Error parsing stored users:', error);
+        return [...MOCK_USERS];
+      }
+    }
+    return [...MOCK_USERS];
+  });
 
   // Check if user is authenticated on mount
   useEffect(() => {
     checkAuth();
-    
-    // Load stored users from localStorage
-    const storedUsers = localStorage.getItem('userDatabase');
-    if (storedUsers) {
-      setUserDatabase([...JSON.parse(storedUsers), ...MOCK_USERS]);
-    }
   }, []);
 
   // Check if user is authenticated
@@ -86,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Registration functionality - now with storage
+  // Registration functionality - now with improved storage
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
@@ -111,8 +125,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const updatedDatabase = [...userDatabase, newUser];
       setUserDatabase(updatedDatabase);
       
-      // Save to localStorage
-      localStorage.setItem('userDatabase', JSON.stringify(updatedDatabase));
+      // Save to localStorage - make sure this actually works
+      try {
+        localStorage.setItem('userDatabase', JSON.stringify(updatedDatabase));
+        console.log('User database saved to localStorage:', updatedDatabase);
+      } catch (storageError) {
+        console.error('Error saving to localStorage:', storageError);
+        toast({
+          title: "Storage warning",
+          description: "Your registration was processed but may not persist between sessions.",
+          variant: "destructive"
+        });
+      }
       
       toast({
         title: "Registration successful",

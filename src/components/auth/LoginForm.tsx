@@ -44,7 +44,7 @@ const LoginForm = () => {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-md mx-auto transition-transform hover:scale-[1.01] hover:shadow-md">
       <CardHeader>
         <CardTitle className="text-2xl font-bold text-center">Login to PhishShield</CardTitle>
         <CardDescription className="text-center">
@@ -96,7 +96,7 @@ const LoginForm = () => {
           </div>
           <Button 
             type="submit" 
-            className="w-full button-hover" 
+            className="w-full transition-colors hover:bg-blue-600" 
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Logging in...' : 'Log in'}
